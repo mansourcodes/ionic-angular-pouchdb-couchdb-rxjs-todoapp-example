@@ -1,7 +1,7 @@
 <ion-header [translucent]="true">
   <ion-toolbar>
     <ion-title>
-      Inbox
+      Todo list 
     </ion-title>
   </ion-toolbar>
 </ion-header>
@@ -14,11 +14,20 @@
   <ion-header collapse="condense">
     <ion-toolbar>
       <ion-title size="large">
-        Inbox
+        Todo list 
       </ion-title>
     </ion-toolbar>
   </ion-header>
-  
+
+  <ion-item>
+    <ion-input  [(ngModel)]="newSubject"  placeholder="add new Subject"></ion-input>
+    <ion-button (click)="addMessage()">
+      <ion-icon name="add"></ion-icon>
+      add</ion-button>
+
+  </ion-item>
+
+
   <ion-list>
     <app-message *ngFor="let message of getMessages()" [message]="message"></app-message>
   </ion-list>

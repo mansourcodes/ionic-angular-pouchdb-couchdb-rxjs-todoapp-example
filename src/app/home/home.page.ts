@@ -7,7 +7,10 @@ import { DataService, Message } from '../services/data.service';
   styleUrls: ['home.page.scss'],
 })
 export class HomePage {
-  constructor(private data: DataService) {}
+
+  newSubject: string;
+
+  constructor(private data: DataService) { }
 
   refresh(ev) {
     setTimeout(() => {
@@ -17,6 +20,12 @@ export class HomePage {
 
   getMessages(): Message[] {
     return this.data.getMessages();
+  }
+
+  addMessage() {
+    this.data.add(this.newSubject);
+
+    this.newSubject = '';
   }
 
 }
