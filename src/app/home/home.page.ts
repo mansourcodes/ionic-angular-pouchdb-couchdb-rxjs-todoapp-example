@@ -29,7 +29,9 @@ export class HomePage implements OnInit, OnDestroy {
   }
 
   ionViewWillEnter() {
-    this.data.fetchMessages().subscribe();
+    this.data.fetchMessages().subscribe(() => {
+      this.data.activeChangeDetect()
+    });
   }
 
   addMessage() {

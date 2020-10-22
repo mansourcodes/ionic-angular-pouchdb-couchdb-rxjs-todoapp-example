@@ -1,11 +1,14 @@
 import { DatePipe } from '@angular/common';
 import { Injectable } from '@angular/core';
-import PouchDB from 'node_modules/pouchdb';
-import { BehaviorSubject } from 'rxjs';
+
+
+import { BehaviorSubject, from } from 'rxjs';
 import { take, map, tap, delay, switchMap, filter, findIndex, find } from 'rxjs/operators';
 
-// import * as PouchDB from 'pouchdb';
-// import { PouchDB } from '@types/pouchdb';
+
+import PouchDB from 'node_modules/pouchdb';
+import PouchdbFind from 'pouchdb-find';
+
 
 
 export interface Message {
@@ -20,30 +23,28 @@ export interface Message {
 export class DataService {
 
 
-  // public messages: Message[] = [
-  //   {
-  //     subject: 'New event: Trip to Vegas',
-  //     date: '9:32 AM',
-  //     _id: '123',
-  //     read: false
-  //   },
-  //   {
-  //     subject: 'Long time no chat',
-  //     date: '6:12 AM',
-  //     _id: '33',
-  //     read: false
-  //   },
-
-  // ];
-
   private _db;
   private _messages = new BehaviorSubject<Message[]>([]);
 
 
 
   constructor() {
+
+    /*
+    npm i pouchdb
+    npm i @types/pouchdb
+    npm i pouchdb-find
+    */
+
+
+    PouchDB.plugin(PouchdbFind);
+
     this._db = new PouchDB('todos');
+    this._db.createIndex({
+      index: { fields: ['read', '_id'] }
+    })
     var remoteCouch = false;
+
   }
 
 
@@ -51,20 +52,46 @@ export class DataService {
     return this._messages.asObservable();
   }
 
+  public activeChangeDetect() {
+    this._db.changes({
+      since: 'now',
+      live: true
+    }).on(
+      'change',
+      () => {
+        console.log('database changed')
+        this.fetchMessages().subscribe();
+      }
+    );
+
+  }
+
   public fetchMessages() {
 
     return this.messages.pipe(
       take(1),
-      tap(result => {
-        return result;
+      switchMap(result => {
+        return from(
+          this._db.find(
+            {
+              selector: { _id: { $gt: null } },
+              include_docs: true,
+              sort: [{ '_id': "desc" }]
+            }
+          )
+        );
+      }),
+      take(1),
+      tap(request => {
+        console.log('fetchMessages');
+        console.log(request);
+        return this._messages.next([...request.docs]);
       })
     )
 
   }
 
-  public getMessageById(id: number): Message {
-    return this.messages[id];
-  }
+
 
   public addMessage(text) {
 
@@ -76,6 +103,13 @@ export class DataService {
 
     return this.messages.pipe(
       take(1),
+      switchMap(result => {
+        return from(this._db.put(newMessage));
+      }),
+      switchMap(() => {
+        return this._messages;
+      }),
+      take(1),
       tap(result => {
         return this._messages.next([newMessage, ...result]);
       })
@@ -84,8 +118,23 @@ export class DataService {
 
   public readMessage(chosenMessage: Message) {
 
-
     return this.messages.pipe(
+      take(1),
+      switchMap(result => {
+        return from(
+          this._db.get(chosenMessage._id)
+            .then(doc => {
+              return this._db.put(
+                {
+                  ...doc,
+                  read: !doc.read,
+                })
+            })
+        );
+      }),
+      switchMap(() => {
+        return this._messages;
+      }),
       take(1),
       map(messages => {
         messages.forEach(singleMessage => {
@@ -101,13 +150,25 @@ export class DataService {
       })
     );
 
+
   }
+
+
 
   public deleteMessage(chosenMessage: Message) {
 
     return this.messages.pipe(
+      take(1),
+      switchMap(result => {
+        return from(
+          this._db.get(chosenMessage._id)
+            .then(doc => {
+              return this._db.remove(doc)
+            })
+        );
+      }),
       switchMap(() => {
-        return this.messages;
+        return this._messages;
       }),
       take(1),
       tap(result => {
