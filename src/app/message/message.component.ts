@@ -1,4 +1,4 @@
-import { Component, OnInit, Input } from '@angular/core';
+import { Component, OnInit, Input, Output, EventEmitter } from '@angular/core';
 import { Message } from '../services/data.service';
 
 @Component({
@@ -8,10 +8,19 @@ import { Message } from '../services/data.service';
 })
 export class MessageComponent implements OnInit {
   @Input() message: Message;
+  @Output() deleteEvent = new EventEmitter();
+  @Output() readEvent = new EventEmitter();
 
   constructor() { }
 
-  ngOnInit() {}
+  ngOnInit() { }
+
+  deleteThis() {
+    this.deleteEvent.emit();
+  }
+  readThis() {
+    this.readEvent.emit();
+  }
 
   isIos() {
     const win = window as any;
