@@ -1,4 +1,4 @@
-import { Component, OnDestroy, OnInit } from '@angular/core';
+import { ChangeDetectorRef, Component, OnDestroy, OnInit } from '@angular/core';
 import { Subscription } from 'rxjs';
 import { DataService, Message } from '../services/data.service';
 
@@ -13,12 +13,14 @@ export class HomePage implements OnInit, OnDestroy {
   loadedMessages: Message[];
   private subMessages: Subscription;
 
-  constructor(private data: DataService) { }
+  constructor(private data: DataService, private changeDetector: ChangeDetectorRef) {
+  }
 
 
   ngOnInit() {
     this.subMessages = this.data.messages.subscribe(messages => {
       this.loadedMessages = messages;
+      this.changeDetector.detectChanges();
     });
   }
 

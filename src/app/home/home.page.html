@@ -26,6 +26,7 @@
   </ion-item>
 
 
+
   <ion-list>
     <app-message *ngFor="let message of loadedMessages" [message]="message" (readEvent)='readMessage(message)' (deleteEvent)="deleteMessage(message)"></app-message>
   </ion-list>

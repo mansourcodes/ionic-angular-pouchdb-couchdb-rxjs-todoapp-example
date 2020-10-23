@@ -24,17 +24,12 @@ export class DataService {
 
 
   private _db;
+  private remoteCouch;
   private _messages = new BehaviorSubject<Message[]>([]);
 
 
 
   constructor() {
-
-    /*
-    npm i pouchdb
-    npm i @types/pouchdb
-    npm i pouchdb-find
-    */
 
 
     PouchDB.plugin(PouchdbFind);
@@ -43,7 +38,7 @@ export class DataService {
     this._db.createIndex({
       index: { fields: ['read', '_id'] }
     })
-    var remoteCouch = false;
+
 
   }
 
@@ -64,6 +59,31 @@ export class DataService {
       }
     );
 
+
+
+    // TODO: replace couchDB 
+    this.remoteCouch = 'http://127.0.0.1:5984/todos';
+
+    if (this.remoteCouch) {
+
+      //method 1
+      var opts = { live: true };
+      this._db.sync(this.remoteCouch, opts, console.log('sync error'))
+        .on('change', () => console.log('onSyncChange'))
+        .on('paused', () => console.log('onSyncPaused'))
+        .on('error', () => console.log('onSyncError'));
+      console.log('database synced')
+
+      //method 2: this will reduce on replication at the start
+      // var opts = { live: true, retry: true };
+      // this._db.replicate.from(this.remoteCouch).on('complete', function (info) {
+      //   this._db.sync(this.remoteCouch, opts)
+      //     .on('change', () => console.log('onSyncChange'))
+      //     .on('paused', () => console.log('onSyncPaused'))
+      //     .on('error', () => console.log('onSyncError'));
+      // }).on('error', () => console.log('onSyncError'));
+
+    }
   }
 
   public fetchMessages() {
@@ -82,9 +102,9 @@ export class DataService {
         );
       }),
       take(1),
-      tap(request => {
+      tap((request: any) => {
         console.log('fetchMessages');
-        console.log(request);
+        console.log("Total docs = " + request.docs.lenght);
         return this._messages.next([...request.docs]);
       })
     )
