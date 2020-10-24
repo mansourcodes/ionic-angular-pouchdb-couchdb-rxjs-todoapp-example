@@ -4,7 +4,7 @@
 I have created this example because I did not found a similar example,
 I hope it helps you learn how to create and sync offline Pouchdb Database with online CouchDB
 
-![alt text](https://github.com/alnassre/ionic-angular-pouchdb-couchdb-rxjs-todoapp-example/blob/main/src/assets/pouchdb-couchdb.gif?raw=true)
+![alt text](https://github.com/mansourcodes/ionic-angular-pouchdb-couchdb-rxjs-todoapp-example/blob/main/src/assets/pouchdb-couchdb.gif?raw=true)
 
 
 
